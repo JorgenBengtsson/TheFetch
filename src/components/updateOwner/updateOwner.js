@@ -1,48 +1,70 @@
 import React, { Component } from "react";
+import "./updateOwner.css";
 
 export default class UpdateOwner extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { id: this.props.id, owner: null, name: "" };
-  }
-  componentDidUpdate(prevProp) {
-    if (this.props.id !== prevProp.id)
-      this.setState((state, props) => ({ id: props.id }), this.getOwner);
+  constructor() {
+    super();
+    this.state = { name: "", age: 0, adress: "", owner: null };
   }
   componentDidMount() {
-    if (this.props.id)
-      this.setState(
-        (state, props) => ({
-          id: props.id,
-        }),
-        this.getOwner
-      );
+    this.fetchOwner();
   }
-  getOwner() {
-    console.log(this.state.id);
-    if (this.state.id != null)
-      fetch("https://localhost:44365/api/owners/" + this.state.id)
+  componentDidUpdate(prevProp) {
+    if (this.props.id !== prevProp.id) this.fetchOwner();
+  }
+  fetchOwner() {
+    if (this.props.id) {
+      fetch("https://localhost:44365/api/owners/" + this.props.id)
         .then((response) => response.json())
-        .then((json) => this.setState({ owner: json, name: json.name }));
+        .then((json) =>
+          this.setState({
+            name: json.name,
+            age: json.age,
+            adress: json.adress ? json.adress : "",
+            owner: json,
+          })
+        );
+    }
   }
   updateOwner() {
-    var owner = { ...this.props.owner, name: this.state.name };
-    fetch("https://localhost:44365/api/owners/" + this.state.id, {
+    var owner = {
+      name: this.state.name,
+      age: this.state.age,
+      adress: this.state.adress,
+    };
+    fetch("https://localhost:44365/api/owners/" + this.props.id, {
       method: "PUT",
       body: JSON.stringify(owner),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-    }).then(() => this.props.onUsersUpdate());
+      headers: { "Content-type": "application/json; charset=UTF-8" },
+    }).then(() => this.props.onUpdatedOwner());
   }
   render() {
     return (
-      <div>
-        <input
-          type="text"
-          value={this.state.name}
-          onChange={(e) => this.setState({ name: e.target.value })}
-        />
+      <div className="updateOwner">
+        <div>
+          Name:{" "}
+          <input
+            type="text"
+            value={this.state.name}
+            onChange={(e) => this.setState({ name: e.target.value })}
+          />
+        </div>
+        <div>
+          Age:{" "}
+          <input
+            type="number"
+            value={this.state.age}
+            onChange={(e) => this.setState({ age: e.target.value })}
+          />
+        </div>
+        <div>
+          Adress:{" "}
+          <input
+            type="text"
+            value={this.state.adress}
+            onChange={(e) => this.setState({ adress: e.target.value })}
+          />
+        </div>
         <button onClick={() => this.updateOwner()}>Update</button>
       </div>
     );

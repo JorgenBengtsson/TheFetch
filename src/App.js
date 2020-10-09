@@ -1,33 +1,37 @@
-import React, { useState, useEffect } from "react";
+import React, { Component } from "react";
 import "./App.css";
-import ListOwners from "./components/listOwners/listOwners";
-import DisplayOwner from "./components/displayOwner/displayOwner";
+import DisplayOwners from "./components/displayOwners/displayOwners";
+import DisplayOneOwner from "./components/displayOneOwner/displayOneOwner";
 import AddOwner from "./components/addOwner/addOwner";
 import UpdateOwner from "./components/updateOwner/updateOwner";
 
-function getOwners(update) {
-  fetch("https://localhost:44365/api/owners")
-    .then((response) => response.json())
-    .then((json) => update(json));
+export default class App extends Component {
+  constructor() {
+    super();
+    this.state = { owners: [], id: undefined };
+  }
+  componentDidMount() {
+    this.fetchOwners();
+  }
+  fetchOwners() {
+    fetch("https://localhost:44365/api/owners/")
+      .then((response) => response.json())
+      .then((json) => this.setState({ owners: json }));
+  }
+  render() {
+    return (
+      <div>
+        <DisplayOwners
+          owners={this.state.owners}
+          onOwnerClick={(id) => this.setState({ id: id })}
+        />
+        <DisplayOneOwner id={this.state.id} />
+        <AddOwner onAddedOwner={() => this.fetchOwners()} />
+        <UpdateOwner
+          onUpdatedOwner={() => this.fetchOwners()}
+          id={this.state.id}
+        />
+      </div>
+    );
+  }
 }
-
-function App() {
-  const [ownerId, updateSelectedOwnerId] = useState(null);
-  const [owners, updateOwners] = useState([]);
-  useEffect(() => {
-    getOwners(updateOwners);
-  }, []);
-  return (
-    <>
-      <ListOwners
-        onSelectOwner={(id) => updateSelectedOwnerId(id)}
-        owners={owners}
-      />
-      <DisplayOwner id={ownerId} />
-      <UpdateOwner id={ownerId} onUsersUpdate={() => getOwners(updateOwners)} />
-      <AddOwner />
-    </>
-  );
-}
-
-export default App;
